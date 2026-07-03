@@ -1,43 +1,64 @@
 # 01. 把本地 Codex 接进飞书 Agent
 
-这一篇只解决一件事：让飞书里的 Agent 真正驱动你电脑上的 Codex，而不是在飞书里重新养一个“失忆版机器人”。
+这一篇只讲一件事：  
+**怎么让飞书里的 Agent 真正连到你本机上的 Codex，而不是只做一个“能聊天但不好用”的壳。**
 
-如果你和我当时的目标一样:
+如果你想要的是下面这种效果，这篇就是对口的：
 
-- 想在飞书里直接和 Codex 对话
-- 想让它读取本地项目代码再回写结果
-- 想保留本地 `AGENTS.md`、Codex 配置和工作区习惯
+- 在飞书里直接和 Codex 对话
+- 让它读你本地项目
+- 让它按你的本地规则继续干活
+- 不想每次重新解释“我这个项目到底在做什么”
 
-那么推荐先走 `lark-channel-bridge` 这条路。
+## 先把这件事想简单一点
 
-## 这条路能做到什么
+很多人第一次看这个方案，会把它想成：
 
-根据 `lark-channel-bridge` 官方 README，它本质上是把飞书 / Lark 会话桥接到本地 Claude Code 或 Codex CLI，支持会话连续、`/cd` 切换目录、`/ws` 保存工作区、文件上传下载等能力。也就是说，入口在飞书，真正干活的 agent 在你的电脑上。  
+“我在飞书里养了一个 Codex。”
+
+其实不是。
+
+更接近真实情况的理解是：
+
+“我把本地 Codex 接了一个飞书聊天入口。”
+
+这个区别非常大。
+
+因为一旦你把它理解对了，后面很多问题就都顺了：
+
+- 它为什么能读本地代码  
+因为真正运行的是你本机上的 agent。
+
+- 它为什么会不会失忆  
+因为上下文能不能续上，取决于你本地工作区、规则文件、路径切换有没有弄对。
+
+- 它为什么不是单纯的云端聊天机器人  
+因为它不是在飞书服务器上直接读你电脑。
+
+## bridge 到底做了什么
+
+`lark-channel-bridge` 这层，说白了就是中间那根线。
+
+它负责把：
+
+- 飞书里的消息
+- 本地的 Codex CLI
+- 会话状态
+- 工作目录
+
+串起来。
+
+官方 README 里提到的重点能力，像 `/cd`、`/ws save`、`/ws use`、文件上传下载这些，本质上都是为了让这条线更像“真正能干活的入口”，而不是单次问答玩具。
+
 参考：
 
 - [zarazhangrui/lark-coding-agent-bridge](https://github.com/zarazhangrui/lark-coding-agent-bridge)
 
-这很重要，因为它决定了:
+## 最推荐的目录放法
 
-1. 飞书不是“代码真身”，本地 Codex 才是。
-2. 你要保留上下文，关键不是让飞书记住聊天，而是让它始终回到同一个本地项目和同一套本地说明文件。
-3. 真正长期有效的记忆，应该沉淀在 `AGENTS.md`、项目文档、工作区配置里。
+如果你和我一样，不想把 npm、bridge 状态、工具缓存都堆在 C 盘，那最省心的方式就是单独给它一个目录。
 
-## 先讲结论
-
-我这次最终跑通的方案是:
-
-1. 在本机安装 `lark-channel-bridge` 和 `lark-cli`
-2. 为飞书里的不同智能体建立独立 profile
-3. 让 bridge profile 继承本机 Codex Home
-4. 把共享规则写进 bridge 默认工作区和真实项目里的 `AGENTS.md`
-5. 在飞书里先单独发送 `/cd <项目路径>`，再发送真正任务
-
-其中第 5 点非常关键，这是我这次最容易踩坑、但也最容易复用的经验。
-
-## 推荐目录规划
-
-如果你不想把 bridge、npm cache、state 都塞进 C 盘，可以像我一样单独放到 D 盘或 E 盘。一个比较清晰的目录例子：
+比如：
 
 ```text
 D:\Nora-D\lark-coding-agent-bridge
@@ -48,103 +69,60 @@ D:\Nora-D\lark-coding-agent-bridge
 └── state-workspaces
 ```
 
-这样做的好处是:
+这样做有两个现实好处：
 
-- bridge 相关状态和 Node 安装分离明确
-- 以后迁移、备份、清理更容易
-- 不会把默认 npm 缓存和工具状态混进系统目录
+1. 以后找配置、找日志、找工作区都很清楚。
+2. 你要重装、迁移、备份的时候，不会一头扎进系统目录里找半天。
 
-## 安装思路
+## 安装这一步不用写得太玄
 
-### 1. 环境要求
+该装的其实就两个：
 
-官方 README 给出的最低条件包括：
+### 1. `lark-channel-bridge`
 
-- Node.js `>= 20.12.0`
-- 本地已安装并可运行的 Codex CLI
-- 一个可绑定的 Feishu / Lark PersonalAgent 应用
+这就是飞书通信层。
 
-参考：
+### 2. `lark-cli`
 
-- [lark-channel-bridge README](https://github.com/zarazhangrui/lark-coding-agent-bridge)
+这个后面权限那篇还会详细讲。  
+简单说，它不只是“顺手带一个命令行工具”，而是后面文档写入和权限验证的主力。
 
-### 2. 安装 bridge
+## profile 这件事，建议一开始就分清
 
-官方示例是：
+如果你后面只接一个 Agent，确实可以不分。
 
-```bash
-npm i -g lark-channel-bridge
-```
+但只要你有一点点“我后面可能还会再接一个角色”的想法，那就别偷懒，最好一开始就把 profile 分开。
 
-或者首次前台调试时使用：
+比如：
 
-```bash
-lark-channel-bridge run
-```
+- `codex`
+- `alhaitham`
 
-但如果你和我一样，希望把安装、缓存、状态都放在非 C 盘，建议先显式设置 npm 位置，再安装。
+好处非常直白：
 
-一个思路示例：
+- 每个 profile 可以有自己的工作区
+- 会话和日志不容易串
+- 你以后改一个，不容易把另一个一起改崩
 
-```powershell
-$env:npm_config_prefix = 'D:\Nora-D\lark-coding-agent-bridge\npm-prefix'
-$env:npm_config_cache  = 'D:\Nora-D\lark-coding-agent-bridge\npm-cache'
-```
+这类东西前面嫌麻烦，后面一般会更麻烦。
 
-如果安装时遇到 `127.0.0.1:7897` 之类的代理报错，优先怀疑是旧代理环境变量残留，而不是 npm 本身坏了。我的处理方法是只在该条命令里临时清空 `HTTP_PROXY` / `HTTPS_PROXY` / `ALL_PROXY`，不要直接乱改全局环境。
+## 真正影响体验的，不是聊天记录，而是本地上下文
 
-### 3. 安装 `lark-cli`
+这一步特别容易理解错。
 
-`lark-cli` 是后面“本地 Codex 直接写飞书文档 / 多维表格”的关键工具，最好一并装好。官方 README 提供了：
+很多人会执着于：
 
-```bash
-npx @larksuite/cli@latest install
-```
+“我能不能让飞书里的 Agent 继承当前这个聊天窗口的全部上下文？”
 
-参考：
+这个问题不是完全没意义，但也不是重点。
 
-- [larksuite/cli README.zh.md](https://github.com/larksuite/cli/blob/main/README.zh.md)
+更关键的问题其实是：
 
-## Profile 设计建议
+**它下次进来时，能不能重新读到同一套本地规则、目标和项目背景。**
 
-如果你只打算连一个飞书 Agent，用默认 profile 也可以。
+所以更稳的做法不是死保聊天，而是把长期有用的信息沉淀成文件。
 
-但如果你像我一样想分角色使用，建议一开始就把 profile 分开。例如：
-
-- `codex`：偏日常协作、轻任务
-- `alhaitham`：偏写文档、读代码、做开发规划
-
-原因很简单：
-
-- 每个 profile 都能有自己的 app 凭证、工作区、日志和会话
-- 以后某个 profile 配坏了，不会把另一个一起拖死
-- 你可以给不同角色不同的默认工作区说明
-
-官方 README 也明确写到：每个 profile 会维护自己的 app credentials、sessions、working directories 和 logs。  
-参考：
-
-- [lark-channel-bridge README](https://github.com/zarazhangrui/lark-coding-agent-bridge)
-
-## 共享上下文怎么做
-
-这里是很多人一开始最容易误解的地方。
-
-### 误区
-
-误区是：希望飞书里的 Agent 直接继承“当前这个 Codex Desktop 聊天线程的全部记忆”。
-
-这通常不稳，也不是我这次最终采用的做法。
-
-### 更稳的做法
-
-让飞书入口和 Desktop 入口都回到同一套本地上下文：
-
-1. bridge profile 保持继承本机 Codex Home
-2. 不要让它忽略本地 rules
-3. 把长期要求写进项目里的 `AGENTS.md`
-4. 需要复用的开发目标、文档同步规则、验收口径，也都写成文件
-
-例如可以在项目根目录维护：
+比如：
 
 ```text
 AGENTS.md
@@ -152,61 +130,57 @@ docs/dev-plan.md
 docs/feishu-sync.md
 ```
 
-这样无论你是从 Desktop 进入，还是从飞书里 `/cd` 进入，本地 Codex 看到的都还是同一份事实来源。
+这样无论你是：
 
-## `/cd` 的正确使用方式
+- 从 Codex Desktop 进去
+- 还是从飞书里进去
 
-这是我这次最真实、最值得写进教程的坑。
+只要最后落到的是同一个项目目录，它读到的就是同一套东西。
 
-### 错误写法
+## `/cd` 这里一定要单独说
 
-不要把 `/cd` 和真正任务写在同一条消息里，例如：
+这一步很小，但真的很容易出问题。
+
+### 错误发法
 
 ```text
-/cd D:\your-project 请读取项目代码并帮我写飞书文档
+/cd D:\your-project 请帮我读取代码并更新飞书文档
 ```
 
-bridge 很可能会把后面的中文也当成路径的一部分，最后报“目录不存在”。
+这看起来像一句完整话，但对 bridge 来说，后面的中文很可能会被一起当成路径。
 
-### 正确写法
+结果就是它不是“没理解你的意思”，而是它真把整串都当路径了。
 
-先发一条纯路径消息：
+### 正确发法
+
+先单独发：
 
 ```text
 /cd D:\your-project
 ```
 
-等它确认目录切换成功后，再发第二条消息：
+等它切目录成功，再发第二句：
 
 ```text
-请读取这个项目的代码结构，并帮我更新飞书开发文档。
+请读取这个项目，然后帮我更新飞书文档。
 ```
 
-如果你只记住这一条，这篇文档就已经值回票价了。
+这个习惯看起来很小，但体验差别会非常大。
 
-## 建议保留的截图
+## 图放这里最合适
 
-这篇建议你后续补 3 类截图，放到 `assets/` 里：
+下面这张图其实很适合放在这一篇。
 
-1. bridge / terminal 启动成功截图
-2. 飞书里 Agent 在线、能够响应的截图
-3. `/cd` 切目录成功后的对话截图
+它能直接说明：飞书里不是“凭空冒出来一个 Codex”，而是已经能看到 scope、profile、cwd、session、agent 这些实际运行信息。
 
-推荐命名：
+![飞书里的 status 页面](../assets/01-feishu-status.jpg)
 
-```text
-assets/
-├── 01-bridge-terminal-ready.png
-├── 02-feishu-agent-online.png
-└── 03-feishu-cd-success.png
-```
+下面这张则很适合放在“bridge 已经在本地真正跑起来了”这一段。
 
-## 最后的小结
+![本地 bridge 运行终端](../assets/02-bridge-running.jpg)
 
-这一部分的核心不是“把飞书变成开发环境”，而是“让飞书成为你本地 Codex 的远程入口”。
+## 这一篇最后只记住 3 句话就够了
 
-只要你记住下面这三条，整个工作流就会稳定很多：
-
-1. 真正的上下文要落在本地文件，不要只留在聊天里。
-2. profile、工作区、规则最好从一开始就分清楚。
-3. `/cd` 一定单独发，切完目录再下任务。
+1. 飞书里的 Agent 只是入口，本地 Codex 才是本体。
+2. 上下文能不能续上，核心看本地工作区和规则文件，不看你有没有把聊天吹得很长。
+3. `/cd` 必须单独发，不要图省事把路径和任务揉成一句。
