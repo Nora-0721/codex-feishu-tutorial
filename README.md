@@ -5,7 +5,7 @@
 - `docs/01-codex-feishu-agent-deploy.md`
   讲的是怎么把本地 Codex 接进飞书，让它能在飞书里对话、切项目目录、继续处理本地代码。
 - `docs/02-local-codex-feishu-write-auth.md`
-  讲的是怎么把“会聊天”进一步做到“能直接写我的飞书文档 / 多维表格”。
+  讲的是怎么把“会聊天”进一步做到“能直接写我的飞书文档”。
 
 ## 目录
 
@@ -45,7 +45,7 @@ assets/
 - `01-feishu-status.jpg`：飞书里查看当前 bridge / session / cwd 状态
 - `02-bridge-running.jpg`：本地 bridge 启动后的终端状态
 - `03-xiaohai-profile.jpg`：飞书智能体页面
-- `04-feishu-auth.jpg`：飞书开放平台授权页
+- `04-feishu-auth.jpg`：飞书开放平台里给 Agent 开权限时的授权页
 
 ## 参考
 

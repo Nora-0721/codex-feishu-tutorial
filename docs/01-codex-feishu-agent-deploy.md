@@ -90,6 +90,16 @@ npx -y lark-channel-bridge@latest start
 
 这一步做完以后，bridge 和飞书入口才算真正连上。
 
+### 4.3 如果要给某个 Agent 额外开权限
+
+如果你像我这样，给艾尔海森单独开了更多文档相关权限，那这一步也是在手机上做。
+
+手机上会进入飞书开放平台的授权页，确认后点“开通并授权”：
+
+![飞书开放平台授权页](../assets/04-feishu-auth.jpg)
+
+这一步属于飞书 Agent 接入这一侧，不属于后面 `lark-cli` 用户身份授权那一段。
+
 启动后如果一切正常，终端里能看到类似这样的状态：
 
 ![本地 bridge 启动状态](../assets/02-bridge-running.jpg)
