@@ -64,6 +64,34 @@ npx @larksuite/cli@latest install
 
 第一次启动的时候，bridge 会让你扫码，把本地 agent 和飞书里的 PersonalAgent 绑起来。
 
+这里的扫码，不是文档权限授权，而是 **先把本地 bridge 和飞书里的智能体入口绑上**。
+
+实际顺序可以按下面走：
+
+### 4.1 启动 bridge
+
+```bash
+npx -y lark-channel-bridge@latest start
+```
+
+如果你已经把它固定装到了自己的目录里，也可以直接用你自己的启动脚本。
+
+### 4.2 手机扫码绑定 Agent
+
+第一次启动时，终端会提示你扫码绑定飞书 / Lark PersonalAgent。
+
+这一步在手机上完成，扫完之后，飞书里会进入智能体相关页面，后面你就可以继续补：
+
+- 智能体名字
+- 头像
+- 基本展示信息
+
+你这边当时的智能体页面就是这种效果：
+
+![飞书智能体页面](../assets/03-xiaohai-profile.jpg)
+
+这一步做完以后，bridge 和飞书入口才算真正连上。
+
 启动后如果一切正常，终端里能看到类似这样的状态：
 
 ![本地 bridge 启动状态](../assets/02-bridge-running.jpg)
@@ -189,6 +217,8 @@ lark-channel-bridge start --profile codex --agent codex
 - 会话
 - 工作目录
 - 日志
+
+如果你本来就准备分成“小洛”和“艾尔海森”这种不同角色，那建议在这里就分开，不要等后面全都混在一个 profile 里再拆。
 
 ## 九、共享上下文怎么做
 
