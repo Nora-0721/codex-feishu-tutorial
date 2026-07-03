@@ -80,13 +80,11 @@ npx -y lark-channel-bridge@latest start
 
 第一次启动时，终端会提示你扫码绑定飞书 / Lark PersonalAgent。
 
-这一步在手机上完成，扫完之后，飞书里会进入智能体相关页面，后面你就可以继续补：
+扫完之后，飞书里会进入智能体相关页面，后面你就可以继续补：
 
 - 智能体名字
 - 头像
 - 基本展示信息
-
-你这边当时的智能体页面就是这种效果：
 
 ![飞书智能体页面](../assets/03-xiaohai-profile.jpg)
 
@@ -114,8 +112,6 @@ npx -y lark-channel-bridge@latest start
 ```
 
 如果接通了，会返回当前 scope、profile、cwd、session、agent、sandbox、queue 这些状态。
-
-例如：
 
 ![飞书里的 status 页面](../assets/01-feishu-status.jpg)
 
