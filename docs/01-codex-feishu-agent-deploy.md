@@ -203,13 +203,3 @@ docs/feishu-sync.md
 ```
 
 这样无论你是从 Desktop 进去，还是从飞书里 `/cd` 进去，最后读到的都是同一套项目说明。
-
-## 十、这一篇对应的两张图
-
-### 10.1 bridge 在飞书里的状态页
-
-![飞书里的 status 页面](../assets/01-feishu-status.jpg)
-
-### 10.2 bridge 在本地终端里的运行状态
-
-![本地 bridge 运行终端](../assets/02-bridge-running.jpg)
