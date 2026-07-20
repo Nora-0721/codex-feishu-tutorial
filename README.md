@@ -28,24 +28,7 @@
 
 - [02-local-codex-feishu-write-auth.md](./docs/02-local-codex-feishu-write-auth.md)
 
-## 配图
 
-仓库里已经放了这 4 张图：
-
-```text
-assets/
-├── 01-feishu-status.jpg
-├── 02-bridge-running.jpg
-├── 03-xiaohai-profile.jpg
-└── 04-feishu-auth.jpg
-```
-
-其中：
-
-- `01-feishu-status.jpg`：飞书里查看当前 bridge / session / cwd 状态
-- `02-bridge-running.jpg`：本地 bridge 启动后的终端状态
-- `03-xiaohai-profile.jpg`：飞书智能体页面
-- `04-feishu-auth.jpg`：飞书开放平台里给 Agent 开权限时的授权页
 
 ## 参考
 
